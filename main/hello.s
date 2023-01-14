@@ -1,0 +1,34 @@
+#include "soc/rtc_cntl_reg.h"
+#include "soc/soc_ulp.h"
+#include "soc/rtc_io_reg.h"
+
+    .global entry
+
+    .set GPIO_ULP, 14
+
+    .text
+
+entry:
+WRITE_RTC_REG(RTC_IO_TOUCH_PAD14_REG, RTC_IO_TOUCH_PAD14_MUX_SEL_S, 1, 1)
+//WRITE_RTC_REG(RTC_IO_TOUCH_PAD14_REG, RTC_IO_TOUCH_PAD14_FUN_SEL_S, 3, 1)
+WRITE_RTC_REG(RTC_GPIO_OUT_REG, RTC_GPIO_OUT_DATA_S + GPIO_ULP, 1, 1)
+WRITE_RTC_REG(RTC_GPIO_ENABLE_W1TS_REG, RTC_GPIO_ENABLE_W1TS_S + GPIO_ULP, 1, 1)
+
+LED_ON:
+    WRITE_RTC_REG(RTC_GPIO_OUT_W1TS_REG, RTC_GPIO_OUT_DATA_W1TS_S + GPIO_ULP, 1, 1)
+    MOVE R0, 133
+    MOVE R1, LED_OFF
+    JUMP delayMaxWait
+    
+LED_OFF: 
+    WRITE_RTC_REG(RTC_GPIO_OUT_W1TC_REG, RTC_GPIO_OUT_DATA_W1TC_S + GPIO_ULP, 1, 1)
+    MOVE R0, 133
+    MOVE R1, LED_ON
+    JUMP delayMaxWait
+
+delayMaxWait:
+    wait 65535
+    SUB R0, R0, 1
+    JUMP R1, EQ
+    JUMP delayMaxWait
+
